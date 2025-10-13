@@ -145,7 +145,7 @@ Captivated by its quality and flavor, the Sulthan decided to bring this treasure
   return (
     <section
       ref={sectionRef}
-      className="relative isolate min-h-[60vh] sm:min-h-[70vh] overflow-hidden"
+      className="relative isolate min-h-[60vh] sm:min-h-[70vh] md:min-h-[30vh] overflow-hidden"
     >
       {/* Background (wrapped for animation) */}
       <div ref={bgWrapRef} className="absolute inset-0 -z-10">
@@ -165,7 +165,7 @@ Captivated by its quality and flavor, the Sulthan decided to bring this treasure
       </div>
 
       {/* Content */}
-      <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 sm:px-6 py-16 sm:py-20 lg:py-28 text-center">
+      <div className="relative mx-auto flex max-w-5xl flex-col items-center px-4 sm:px-6 py-16 sm:py-20 lg:py-28 text-center ">
         <h1
           ref={titleRef}
           className="text-2xl sm:text-4xl font-bold tracking-tight text-[#011D6E]"

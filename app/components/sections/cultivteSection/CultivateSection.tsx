@@ -30,10 +30,8 @@ export default function HowAbuHindCultivates() {
     const circles = gsap.utils.toArray<HTMLDivElement>(".js-circle");
     const connWraps = gsap.utils.toArray<HTMLDivElement>(".js-conn-wrap");
 
-    // Reference to the scrubbed timeline (so we can kill/rebuild cleanly)
     let tl: gsap.core.Timeline | null = null;
 
-    // ---- helpers ----
     const setInitial = () => {
       gsap.set([titleRef.current, subRef.current], { y: 24, autoAlpha: 0 });
       gsap.set(descRef.current, { x: -24, autoAlpha: 0 });
@@ -50,9 +48,8 @@ export default function HowAbuHindCultivates() {
       gsap.set(train, { clearProps: "all" });
     };
 
-    // Collect dynamic measurements for the train path
     const measure = () => {
-      const rowBox = row.getBoundingClientRect();
+      const rowBox = row!.getBoundingClientRect();
       const segments = connWraps.map((wrap) => {
         const track = wrap.querySelector<HTMLDivElement>(".js-track")!;
         const r = track.getBoundingClientRect();
@@ -65,26 +62,28 @@ export default function HowAbuHindCultivates() {
 
       const body = train.querySelector<HTMLDivElement>(".js-train-body") as HTMLDivElement;
       const tBox = body.getBoundingClientRect();
-
       return { segments, trainW: tBox.width, trainH: tBox.height };
     };
 
-    // Build the scrubbed timeline
+    // desktop-only flag
+    const isDesktop = () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(min-width: 1024px)").matches;
+
     const buildTimeline = (
       m: ReturnType<typeof measure>,
-      secEl: HTMLElement
+      secEl: HTMLElement,
+      enableTrain: boolean
     ) => {
       const { segments, trainW, trainH } = m;
 
-      // The entire sequence is scrubbed between start & end
       const timeline = gsap.timeline({
         defaults: { ease: "power3.out" },
         scrollTrigger: {
           trigger: secEl,
-          start: "top 92%",
-          end: "bottom 89%",
-          scrub: 1,               // <-- scrub feel (increase for smoother/slower)
-          invalidateOnRefresh: true
+          start: "top 82%",
+          end: "bottom 99%",
+          invalidateOnRefresh: true,
         },
       });
 
@@ -95,61 +94,85 @@ export default function HowAbuHindCultivates() {
         .to(dividerRef.current, { scaleX: 1, duration: 0.5 }, 0.65)
         .to(descRef.current,  { x: 0, autoAlpha: 1, duration: 0.8 }, 0.7);
 
-      // Stations + train sequence
       const startAt = 0.55;
-      if (circles[0]) {
-        timeline.to(circles[0], { scale: 1, autoAlpha: 1, duration: 0.35 }, startAt);
-      }
 
-      if (segments.length > 0) {
-        const dwell = 0.12;
-        const segDur = 0.5;
-
-        timeline.set(
-          train,
-          { x: segments[0].xStart, y: segments[0].y - trainH / 2, autoAlpha: 1 },
-          startAt + 0.05
-        );
-
-        let t = startAt + 0.08;
-
-        segments.forEach((seg, i) => {
-          // travel current segment
-          timeline.to(
-            train,
+      if (!enableTrain) {
+        // 👉 Mobile & Tablet: reveal ALL circles with a staggered pop
+        if (circles.length) {
+          timeline.fromTo(
+            circles,
+            { scale: 0.6, autoAlpha: 0 },
             {
-              x: seg.xEnd - trainW,
-              y: seg.y - trainH / 2,
-              duration: segDur,
-              ease: "power1.inOut",
+              scale: 1,
+              autoAlpha: 1,
+              duration: 0.3,
+              ease: "back.out(2)",
+              stagger: 0.12,
             },
-            t
+            startAt
+          );
+        }
+      } else {
+        // 👉 Desktop: first circle pops, the rest pop as the train "arrives"
+        if (circles[0]) {
+          timeline.fromTo(
+            circles[0],
+            { scale: 0.6, autoAlpha: 0 },
+            { scale: 1, autoAlpha: 1, duration: 0.28, ease: "back.out(2)" },
+            startAt
+          );
+        }
+
+        if (segments.length > 0) {
+          const dwell = 0.12;
+          const segDur = 0.5;
+
+          timeline.set(
+            train,
+            { x: segments[0].xStart, y: segments[0].y - trainH / 2, autoAlpha: 1 },
+            startAt + 0.05
           );
 
-          // next station pops
-          const nextCircle = circles[i + 1];
-          if (nextCircle) {
-            timeline.fromTo(
-              nextCircle,
-              { scale: 0.6, autoAlpha: 0 },
-              { scale: 1, autoAlpha: 1, duration: 0.28, ease: "back.out(2)" },
-              t + segDur - 0.12
+          let t = startAt + 0.08;
+
+          segments.forEach((seg, i) => {
+            // travel current segment
+            timeline.to(
+              train,
+              {
+                x: seg.xEnd - trainW,
+                y: seg.y - trainH / 2,
+                duration: segDur,
+                ease: "power1.inOut",
+              },
+              t
             );
-          }
 
-          // jump to next segment (cut) or fade out at end
-          const nextSeg = segments[i + 1];
-          if (nextSeg) {
-            timeline
-              .to(train, { autoAlpha: 0, duration: 0.02 }, t + segDur + 0.01)
-              .set(train, { x: nextSeg.xStart, y: nextSeg.y - trainH / 2 })
-              .to(train, { autoAlpha: 1, duration: 0.02 });
-          } else {
-            timeline.to(train, { autoAlpha: 0, duration: 0.15 }, t + segDur + dwell / 2);
-          }
+            // next station pops
+            const nextCircle = circles[i + 1];
+            if (nextCircle) {
+              timeline.fromTo(
+                nextCircle,
+                { scale: 0.6, autoAlpha: 0 },
+                { scale: 1, autoAlpha: 1, duration: 0.28, ease: "back.out(2)" },
+                t + segDur - 0.12
+              );
+            }
 
-          t += segDur + dwell;
-        });
+            // jump to next segment (cut) or fade out at end
+            const nextSeg = segments[i + 1];
+            if (nextSeg) {
+              timeline
+                .to(train, { autoAlpha: 0, duration: 0.02 }, t + segDur + 0.01)
+                .set(train, { x: nextSeg.xStart, y: nextSeg.y - trainH / 2 })
+                .to(train, { autoAlpha: 1, duration: 0.02 });
+            } else {
+              timeline.to(train, { autoAlpha: 0, duration: 0.15 }, t + segDur + dwell / 2);
+            }
+
+            t += segDur + dwell;
+          });
+        }
       }
 
       return timeline;
@@ -160,25 +183,19 @@ export default function HowAbuHindCultivates() {
       return;
     }
 
-    // Prepare initial states now
     setInitial();
 
-    // Gate with an outer trigger so it only (re)builds when entering from the top
     const masterST = ScrollTrigger.create({
       trigger: section,
       start: "top 72%",
       onEnter: () => {
-        // Rebuild measurements & the scrubbed timeline each time you enter from top
         tl?.scrollTrigger?.kill();
         tl?.kill();
         setInitial();
-        tl = buildTimeline(measure(), section);
+        tl = buildTimeline(measure(), section, isDesktop());
       },
-      onEnterBack: () => {
-        // ignore bottom→top to keep the "top→down only" replay behavior
-      },
+      onEnterBack: () => {},
       onLeaveBack: () => {
-        // reset when scrolling back above the start
         tl?.scrollTrigger?.kill();
         tl?.kill();
         setInitial();
@@ -186,12 +203,11 @@ export default function HowAbuHindCultivates() {
       invalidateOnRefresh: true,
     });
 
-    // Keep measurements accurate on layout changes
     const onRefresh = () => {
       tl?.scrollTrigger?.kill();
       tl?.kill();
       setInitial();
-      tl = buildTimeline(measure(), section);
+      tl = buildTimeline(measure(), section, isDesktop());
     };
     ScrollTrigger.addEventListener("refreshInit", onRefresh);
 
@@ -233,8 +249,8 @@ export default function HowAbuHindCultivates() {
 
         {/* Steps Row */}
         <div ref={rowRef} className="relative flex flex-wrap justify-center items-center gap-6 md:gap-10 mb-16">
-          {/* ONE global train (hidden on small screens to match hidden connectors) */}
-          <div ref={globalTrainRef} className="hidden md:block absolute left-0 top-0 pointer-events-none opacity-0">
+          {/* Train is hidden on tablet; visible only on desktop */}
+          <div ref={globalTrainRef} className="hidden lg:block absolute left-0 top-0 pointer-events-none opacity-0">
             <div className="js-train-body flex items-center">
               <div className="h-[3px] w-8 bg-[#002060] rounded-full" />
               <div className="ml-[2px] w-0 h-0 border-t-[6px] border-b-[6px] border-l-[8px] border-t-transparent border-b-transparent border-l-[#002060]" />

@@ -22,8 +22,13 @@ const features: Feature[] = [
 
 function FeatureItem({ no, title, blurb, img, imgAlt, offset }: Feature) {
   return (
-    <div className={`relative transition-transform duration-300 hover:-translate-y-1 overflow-visible ${offset ? 'lg:mt-40' : 'lg:mt-8'}`}>
-      {/* Big faint number (kept outside to avoid clipping) */}
+    <div
+      className={`relative transition-transform duration-300 lg:hover:-translate-y-1
+                  overflow-visible
+                  pt-6
+                  ${offset ? 'lg:mt-40' : 'lg:mt-8'}`}
+    >
+      {/* Big faint number */}
       <div
         aria-hidden
         className="select-none pointer-events-none absolute -top-6 left-0 z-0 text-7xl sm:text-8xl font-extrabold text-[#011D6E3D] leading-none"
@@ -31,7 +36,7 @@ function FeatureItem({ no, title, blurb, img, imgAlt, offset }: Feature) {
         {no}
       </div>
 
-      {/* Card wrapper (animates as a unit) */}
+      {/* Card wrapper */}
       <div className="js-card relative z-10 will-change-[transform,opacity]">
         <div className="mt-12">
           <h3 className="js-card-title text-xl font-semibold text-[#011D6E] font-manrope will-change-[transform,opacity]">
@@ -42,10 +47,12 @@ function FeatureItem({ no, title, blurb, img, imgAlt, offset }: Feature) {
           </p>
         </div>
 
+        {/* Image: fits screen on phone/tablet; unchanged on desktop */}
         <div
-          className={`js-card-img relative z-10 mt-5 overflow-hidden rounded-2xl shadow-xl ring-1 ring-black/5 will-change-[transform,opacity] ${
-            offset ? 'h-[40rem] sm:h-[26rem]' : 'h-[40rem] sm:h-[25rem]'
-          }`}
+          className={`js-card-img relative z-10 mt-5 overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/5 will-change-[transform,opacity]
+                      h-[70vh] sm:h-[78vh] md:h-[85vh] max-h-screen
+                      ${offset ? 'lg:h-[26rem]' : 'lg:h-[25rem]'}
+          `}
         >
           <Image src={img} alt={imgAlt} width={640} height={480} className="h-full w-full object-cover" />
         </div>
@@ -74,7 +81,6 @@ export default function AboutPage() {
     const intro      = introRef.current!;
     const grid       = gridRef.current!;
 
-    // ---- Initial states
     const setInitialBar = () => {
       gsap.set(yellowWipe, { scaleX: 0, transformOrigin: 'left center' });
       gsap.set(heading,   { y: 12, autoAlpha: 0 });
@@ -88,9 +94,7 @@ export default function AboutPage() {
       const titles = gsap.utils.toArray<HTMLElement>('.js-card-title');
       const blurbs = gsap.utils.toArray<HTMLElement>('.js-card-blurb');
 
-      // SLOW rise: start lower with slight scale
       gsap.set(cards,  { y: 40, scale: 0.96, autoAlpha: 0 });
-      // keep image pop separate
       gsap.set(imgs,   { scale: 0.92, autoAlpha: 0 });
       gsap.set([...titles, ...blurbs], { y: 14, autoAlpha: 0 });
     };
@@ -108,7 +112,6 @@ export default function AboutPage() {
     setInitialIntro();
     setInitialCards();
 
-    // Helper: scrubbed (down-only) timeline with reset on leaveBack.
     const makeDownOnlyScrub = ({
       trigger,
       start,
@@ -131,7 +134,7 @@ export default function AboutPage() {
         end,
         scrub: true,
         onUpdate: (self) => {
-          last = Math.max(last, self.progress); // only forward
+          last = Math.max(last, self.progress);
           tl.progress(last);
         },
         onLeaveBack: () => {
@@ -154,7 +157,6 @@ export default function AboutPage() {
       };
     };
 
-    // --- Yellow bar + heading (scrubbed)
     const killBar = makeDownOnlyScrub({
       trigger: yellowWrap,
       start: 'top 100%',
@@ -168,7 +170,6 @@ export default function AboutPage() {
       onReset: setInitialBar,
     });
 
-    // --- Intro paragraph (scrubbed)
     const killIntro = makeDownOnlyScrub({
       trigger: intro,
       start: 'top 85%',
@@ -181,28 +182,23 @@ export default function AboutPage() {
       onReset: setInitialIntro,
     });
 
-    // --- Cards: VERY SLOW RISE (scrubbed + staggered)
     const killCards = makeDownOnlyScrub({
       trigger: grid,
       start: 'top 80%',
-      end: '+=900', // longer scrub distance => slower movement
+      end: '+=900',
       build: () => {
         const tl = gsap.timeline({ paused: true });
-
         const cards  = gsap.utils.toArray<HTMLElement>('.js-card');
 
         let base = 0;
-        const step = 0.45; // more spacing between cards
+        const step = 0.45;
 
         cards.forEach((card) => {
           const img   = card.querySelector<HTMLElement>('.js-card-img');
           const title = card.querySelector<HTMLElement>('.js-card-title');
           const blurb = card.querySelector<HTMLElement>('.js-card-blurb');
 
-          // slow rise + gentle scale
           tl.to(card, { y: 0, scale: 1, autoAlpha: 1, duration: 1.6, ease: 'power2.out' }, base);
-
-          // image pop, then text slide-up
           if (img)   tl.to(img,   { scale: 1, autoAlpha: 1, duration: 1.1, ease: 'power3.out' }, base + 0.12);
           if (title) tl.to(title, { y: 0, autoAlpha: 1, duration: 0.9, ease: 'power3.out' },   base + 0.20);
           if (blurb) tl.to(blurb, { y: 0, autoAlpha: 1, duration: 0.9, ease: 'power3.out' },   base + 0.26);
@@ -257,7 +253,7 @@ export default function AboutPage() {
       </section>
 
       {/* Features grid */}
-      <section className="relative pb-20 z-50">
+      <section className="relative pt-8 pb-20 lg:z-50"> {/* ← add pt-8, remove overflow-hidden */}
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div ref={gridRef} className="grid grid-cols-1 gap-10 lg:grid-cols-3">
             {features.map((f) => (

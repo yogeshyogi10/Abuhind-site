@@ -25,15 +25,15 @@ export default function Navbar() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         {/* grid keeps center links centered */}
         <div className="flex items-center justify-between py-3 lg:grid lg:grid-cols-3 lg:py-3">
-          {/* Left: logo */}
+          {/* Left: logo (pulled left to the viewport edge) */}
           <div className="flex items-center justify-start">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2 -ml-4 sm:-ml-6">
+              {/* ^ offsets the container padding (px-4 / sm:px-6) */}
               <Image
                 src="/assets/logo/abuhind-logo.png"
                 alt="Abu Hind"
-                width={360}
+                width={860}
                 height={180}
-                // Larger on mobile now
                 className="h-12 w-auto sm:h-14 lg:h-12"
                 priority
                 sizes="(max-width: 640px) 160px, (max-width: 1024px) 200px, 220px"
@@ -85,7 +85,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu panel — unchanged */}
+      {/* Mobile menu panel */}
       <div
         className={`lg:hidden overflow-hidden transition-[max-height] duration-300 ease-out ${
           open ? "max-h-96" : "max-h-0"
