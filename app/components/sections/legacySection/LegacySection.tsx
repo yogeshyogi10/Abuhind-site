@@ -14,8 +14,11 @@ type Props = {
 export default function HeroVignette({
   bgSrc = "/assets/images/golden-paddy.webp",
   title = "Legacy Of Royal Taste",
-  body = `Long ago, an Arab Sulthan visited India and was generously hosted by an Indian Rajah, who had a daughter named Hind. To welcome the Sulthan, the Rajah prepared an extraordinary feast featuring biriyani made with a special rice—Basmati. The Sulthan was overwhelmed by the richness and fragrant aroma of the dish and asked the Rajah about the rice. Proudly, the Rajah showed him the royal fields where this exceptional rice was grown.
-Captivated by its quality and flavor, the Sulthan decided to bring this treasured rice to his homeland for his people to enjoy. In honor of Rajah Hind, he named the rice “Abu Hind,” meaning "Father of Hind," symbolizing the bond between cultures and the rich legacy of this special grain.`,
+  body = `Centuries ago, Arab travelers visited the heart of India and were welcomed at the palace of a noble king with a feast unlike any they had ever known. On the royal table was fragrant biriyani, made with a grain so long, delicate, and aromatic, it seemed fit only for kings.
+
+Enchanted, the guests asked about the rice, and the king proudly led them to the golden fields where it was grown. His daughter, Princess Hind, the jewel of the royal household, inspired the Arabs to name the rice Abuhind — meaning “Father of Hind, Father of the Princess.”
+
+Abuhind Basmati became more than rice. It became a heritage grain, carrying royal traditions, the pride of India, and a timeless, unforgettable taste.`,
 }: Props) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const bgWrapRef = useRef<HTMLDivElement | null>(null);

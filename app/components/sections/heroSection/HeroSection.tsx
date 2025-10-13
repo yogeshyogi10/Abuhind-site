@@ -145,7 +145,7 @@ export default function HeroSection() {
             alt="Rice bowl"
             width={600}
             height={600}
-            className="w-full h-full object-contain scale-[2] sm:scale-[2.5] md:scale-[3.2] lg:scale-[7.7] -translate-y-3 md:-translate-y-5 lg:-translate-y-[15px] opacity-60 md:opacity-100 [backface-visibility:hidden] transition-transform"
+            className="w-full h-full object-contain scale-[2] sm:scale-[2.5] md:scale-[3.2] lg:scale-[7.7]  lg:-mr-80 -translate-y-3 md:-translate-y-5 lg:-translate-y-[25px] opacity-60 md:opacity-100 [backface-visibility:hidden] transition-transform"
             priority
           />
         </div>
