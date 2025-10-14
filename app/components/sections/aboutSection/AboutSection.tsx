@@ -221,7 +221,7 @@ export default function AboutPage() {
   return (
     <main className="bg-white">
       {/* Top yellow heading bar */}
-      <section className="relative">
+      <section className="relative" id="about">
         <div ref={yellowWrapRef} className="relative overflow-hidden bg-yellow-400/20">
           <div ref={yellowWipeRef} aria-hidden className="absolute inset-0 bg-yellow-400 origin-left scale-x-0 will-change-transform" />
           <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6">

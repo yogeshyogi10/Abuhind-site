@@ -122,6 +122,7 @@ export default function HeroSection() {
 
   return (
     <section
+    id="home"
       ref={sectionRef}
       className="relative w-full min-h-[90vh] flex items-stretch lg:items-center justify-center bg-[#011D6EE5] overflow-hidden"
     >

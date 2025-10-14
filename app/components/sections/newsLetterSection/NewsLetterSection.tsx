@@ -153,7 +153,7 @@ export default function Newsletter() {
   }
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden bg-[#0a3372]">
+    <section ref={sectionRef} id="contact" className="relative overflow-hidden bg-[#0a3372]">
       {/* optional bottom accent */}
       <div className="absolute inset-x-0 bottom-0 h-2 bg-yellow-400" />
 

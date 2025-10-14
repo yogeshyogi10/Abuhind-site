@@ -155,7 +155,7 @@ export default function WhySection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative isolate sm:-mt-25 lg:-mt-55 z-10 overflow-hidden">
+    <section ref={sectionRef} id="blogs" className="relative isolate sm:-mt-25 lg:-mt-55 z-10 overflow-hidden">
       {/* Background image */}
       <div ref={bgRef} className="absolute inset-0 -z-10">
         <Image
