@@ -1,7 +1,8 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'export',            // <= static export (no server)
-  images: { unoptimized: true } // <= avoids Next image optimizer on shared hosting
-  // (keep this if all images are local/public or you don’t need on-the-fly optimization)
-};
-module.exports = nextConfig;
+const isProd = process.env.NODE_ENV === 'production'
+
+module.exports = {
+  basePath: '/abuhind',
+  assetPrefix: '/abuhind/',
+  images: { unoptimized: true }, // needed for static export on shared hosting
+  trailingSlash: true,           // optional but helps when exporting
+}
