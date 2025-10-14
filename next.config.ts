@@ -3,7 +3,7 @@ const nextConfig = {
   output: 'export',            // we are exporting static files
   basePath: '/abuhind',        // <-- IMPORTANT
   assetPrefix: '/abuhind/',    // <-- IMPORTANT
-  images: { unoptimized: true },
+  
   trailingSlash: true          // optional but nice for static hosting
 };
 
