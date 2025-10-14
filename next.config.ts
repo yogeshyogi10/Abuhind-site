@@ -1,10 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',            // we are exporting static files
-  basePath: '/abuhind',        // <-- IMPORTANT
-  assetPrefix: '/abuhind/',    // <-- IMPORTANT
-  images: { unoptimized: true },
-  trailingSlash: true          // optional but nice for static hosting
+  output: 'export',            // <= static export (no server)
+  images: { unoptimized: true } // <= avoids Next image optimizer on shared hosting
+  // (keep this if all images are local/public or you don’t need on-the-fly optimization)
 };
-
 module.exports = nextConfig;
