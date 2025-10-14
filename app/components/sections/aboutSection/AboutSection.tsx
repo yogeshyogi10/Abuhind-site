@@ -50,11 +50,13 @@ function FeatureItem({ no, title, blurb, img, imgAlt, offset }: Feature) {
         {/* Image: fits screen on phone/tablet; unchanged on desktop */}
         <div
           className={`js-card-img relative z-10 mt-5 overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/5 will-change-[transform,opacity]
-                      h-[70vh] sm:h-[78vh] md:h-[85vh] max-h-screen
+                      h-[70vh] sm:h-[78vh]
+                      md:h-[52vh] md:max-h-[28rem]   /* 👈 smaller on tablets */
+                      max-h-screen
                       ${offset ? 'lg:h-[26rem]' : 'lg:h-[25rem]'}
           `}
         >
-          <Image src={img} alt={imgAlt} width={640} height={480} className="h-full w-full object-cover" />
+          <Image src={img} alt={imgAlt} width={640} height={480} className="h-full w-full object-cover " />
         </div>
       </div>
     </div>
