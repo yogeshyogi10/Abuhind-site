@@ -1,9 +1,8 @@
 // app/layout.tsx (or app/(site)/layout.tsx)
 import type { Metadata } from "next";
-import "./globals.css";
-
 import { Poppins } from "next/font/google";
 import localFont from "next/font/local";
+import "./globals.css";
 
 const poppins = Poppins({
   subsets: ["latin"],
