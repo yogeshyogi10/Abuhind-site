@@ -12,12 +12,41 @@ export default function GrainSection() {
 
   const sectionRef = useRef<HTMLElement | null>(null);
   const crossRef = useRef<HTMLDivElement | null>(null);
+  const titleRef = useRef<HTMLHeadingElement | null>(null); // ⬅️ NEW
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
     const section = sectionRef.current;
     if (!section) return;
+
+    // Split an element's text into word <span>s while preserving spaces
+    const splitWords = (el: HTMLElement): HTMLElement[] => {
+      if ((el as any).__splitDone) {
+        return Array.from(
+          el.querySelectorAll<HTMLElement>(":scope span.__word")
+        );
+      }
+      const text = el.textContent ?? "";
+      const parts = text.match(/\S+|\s+/g) ?? [];
+      el.textContent = "";
+      const frag = document.createDocumentFragment();
+      const words: HTMLElement[] = [];
+      for (const piece of parts) {
+        if (/^\s+$/.test(piece)) {
+          frag.appendChild(document.createTextNode(piece));
+        } else {
+          const s = document.createElement("span");
+          s.textContent = piece;
+          s.className = "__word inline-block will-change-transform";
+          frag.appendChild(s);
+          words.push(s);
+        }
+      }
+      el.appendChild(frag);
+      (el as any).__splitDone = true;
+      return words;
+    };
 
     const ctx = gsap.context(() => {
       const reduced =
@@ -32,7 +61,22 @@ export default function GrainSection() {
       const hLines = gsap.utils.toArray<HTMLElement>(".js-cross-h");
       const dots = gsap.utils.toArray<HTMLElement>(".js-cross-dot");
 
+      // ⬅️ NEW: split title into words (if present)
+      const titleEl = titleRef.current as HTMLElement | null;
+      const titleWords = titleEl ? splitWords(titleEl) : [];
+
       const setInitial = () => {
+        // title words start slightly tilted & lowered
+        if (titleWords.length) {
+          gsap.set(titleWords, {
+            y: 16,
+            autoAlpha: 0,
+            rotateX: 18,
+            transformPerspective: 700,
+            willChange: "transform,opacity",
+          });
+        }
+
         gsap.set(imgs, { scale: 0.85, autoAlpha: 0, willChange: "transform,opacity" });
         gsap.set(txtLeft, { x: -24, autoAlpha: 0, willChange: "transform,opacity" });
         gsap.set(txtRight, { x: 24, autoAlpha: 0, willChange: "transform,opacity" });
@@ -42,7 +86,10 @@ export default function GrainSection() {
       };
 
       if (reduced) {
-        gsap.set([imgs, txtLeft, txtRight, vLines, hLines, dots].flat(), { clearProps: "all" });
+        gsap.set(
+          [titleEl, imgs, txtLeft, txtRight, vLines, hLines, dots].flat().filter(Boolean) as any[],
+          { clearProps: "all" }
+        );
         return;
       }
 
@@ -51,14 +98,30 @@ export default function GrainSection() {
       // Slower, softer timeline
       const tl = gsap.timeline({ paused: true, defaults: { ease: "power2.out" } });
 
+      // ⬅️ NEW: Title word animation first
+      if (titleWords.length) {
+        tl.to(
+          titleWords,
+          {
+            y: 0,
+            rotateX: 0,
+            autoAlpha: 1,
+            duration: 0.45,
+            ease: "power3.out",
+            stagger: 0.035,
+          },
+          0.0
+        );
+      }
+
       // Cross lines & dots
       if (vLines.length || hLines.length) {
-        tl.to(vLines, { scaleY: 1, duration: 0.95, ease: "power1.out" }, 0.0)
-          .to(hLines, { scaleX: 1, duration: 0.95, ease: "power1.out" }, 0.0)
+        tl.to(vLines, { scaleY: 1, duration: 0.95, ease: "power1.out" }, 0.05)
+          .to(hLines, { scaleX: 1, duration: 0.95, ease: "power1.out" }, 0.05)
           .to(
             dots,
             { scale: 1, autoAlpha: 1, duration: 0.5, ease: "back.out(1.4)", stagger: 0.06 },
-            0.1
+            0.12
           );
       }
 
@@ -102,7 +165,7 @@ export default function GrainSection() {
 
   return (
     <section ref={sectionRef} className="relative bg-white overflow-hidden">
-      {/* === Existing background SVGs (unchanged) === */}
+      {/* Background SVGs */}
       <div
         aria-hidden
         className="
@@ -117,79 +180,61 @@ export default function GrainSection() {
         "
       />
 
-      {/* === Extra bottom corner SVGs (new) === */}
+      {/* Corner SVGs */}
       <div
         aria-hidden
-        className="
-          pointer-events-none absolute bottom-[-12px] left-[-16px] z-0 opacity-25
-          hidden xs:block sm:block
-        "
+        className="pointer-events-none absolute bottom-[-12px] left-[-16px] z-0 opacity-25 hidden xs:block sm:block"
         style={{ width: 180, height: 180 }}
       >
-        <Image
-          src="/assets/svg/wheat-1.svg"
-          alt=""
-          fill
-          sizes="180px"
-          className="object-contain"
-          priority={false}
-        />
+        <Image src="/assets/svg/wheat-1.svg" alt="" fill sizes="180px" className="object-contain" />
       </div>
-
       <div
         aria-hidden
-        className="
-          pointer-events-none absolute bottom-[-16px] right-[-20px] z-0 opacity-25
-          hidden xs:block sm:block
-        "
+        className="pointer-events-none absolute bottom-[-16px] right-[-20px] z-0 opacity-25 hidden xs:block sm:block"
         style={{ width: 210, height: 210 }}
       >
-        <Image
-          src="/assets/svg/wheat-2.svg"
-          alt=""
-          fill
-          sizes="210px"
-          className="object-contain"
-          priority={false}
-        />
+        <Image src="/assets/svg/wheat-2.svg" alt="" fill sizes="210px" className="object-contain" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14">
-        <h2 className="text-center text-2xl sm:text-3xl font-extrabold tracking-tight text-[#173a78]">
-          {/* optional heading */}
+        <h2
+          ref={titleRef} // ⬅️ animated
+          className="text-center text-2xl lg:text-5xl sm:text-3xl font-extrabold tracking-tight text-[#173a78]"
+        >
+          Quality you can Trust
         </h2>
 
         {/* MOBILE */}
         <div className="mt-8 space-y-6 md:hidden">
           <div className="flex flex-col items-center text-center">
-            <Image src="/assets/images/rice-1.jpg" alt="Grain 1" width={224} height={224}
+            <Image src="/assets/images/rice-bowl-1.jpg" alt="Grain 1" width={224} height={224}
               className={`${imgCls} rounded-tr-3xl rounded-bl-3xl`} />
             <p className={`${copyCls} js-txt-left mt-3`}>
-              Retaining the bran and germ, brown basmati provides a chewier texture, nuttier flavor, and greater nutritional value including higher fiber and more minerals. It is a wholesome option for health-conscious consumers and adds depth to salads and wholesome recipes.
+              Grain Integrity: Extra-long, slender grains that remain separate and fluffy after cooking.
             </p>
           </div>
 
           <div className="flex flex-col items-center text-center">
-            <Image src="/assets/images/rice-2.jpg" alt="Grain 2" width={224} height={224}
+            <Image src="/assets/images/man.jpg" alt="Grain 2" width={224} height={224}
               className={`${imgCls} rounded-tl-3xl rounded-br-3xl`} />
             <p className={`${copyCls} js-txt-right mt-3`}>
-              A parboiled variety with a beautiful golden hue, Golden Sella preserves more nutrients and is loved for its firm, robust grains that stay separate after cooking. It’s especially favored by restaurants and caterers for its resilience and appearance.
+              Natural Aroma: Retained through traditional aging and gentle processing.
             </p>
           </div>
 
           <div className="flex flex-col items-center text-center">
-            <Image src="/assets/images/rice-3.jpg" alt="Grain 3" width={224} height={224}
+            <Image src="/assets/images/field-1.jpg" alt="Grain 3" width={224} height={224}
               className={`${imgCls} rounded-br-3xl rounded-tl-3xl`} />
             <p className={`${copyCls} js-txt-left mt-3`}>
-              Known for its authentic fragrance, traditional basmati has a rich, deep aroma and a classic soft texture that is prized in festive cooking and everyday meals. It features delicate, nutty flavor and grains that remain wonderfully separate after cooking.
+              Sustainable Cultivation: Environmentally responsible practices that support farmers and preserve soil quality.
             </p>
           </div>
 
           <div className="flex flex-col items-center text-center">
-            <Image src="/assets/images/rice-4.jpg" alt="Grain 4" width={224} height={224}
+            <Image src="/assets/images/rice-sacks.jpg" alt="Grain 4" width={224} height={224}
               className={`${imgCls} rounded-bl-3xl rounded-tr-3xl`} />
             <p className={`${copyCls} js-txt-right mt-3`}>
-              Known for its authentic fragrance, traditional basmati has a rich, deep aroma and a classic soft texture that is prized in festive cooking and everyday meals. It features delicate, nutty flavor and grains that remain wonderfully separate after cooking.
+              Global Compliance: Meets international standards of hygiene, packaging, and food safety (FSSAI, ISO, HACCP).
             </p>
           </div>
         </div>
@@ -197,39 +242,39 @@ export default function GrainSection() {
         {/* TABLET */}
         <div className="hidden md:grid lg:hidden mt-10 grid-cols-2 gap-8 items-center">
           <div className="flex justify-center">
-            <Image src="/assets/images/rice-1.jpg" alt="Grain 1" width={BOX} height={BOX}
+            <Image src="/assets/images/rice-bowl-1.jpg" alt="Grain 1" width={BOX} height={BOX}
               className={`${imgCls} rounded-tr-3xl rounded-bl-3xl`} />
           </div>
-          <p className={`${copyCls} js-txt-right`}>
-            Retaining the bran and germ, brown basmati provides a chewier texture, nuttier flavor, and greater nutritional value including higher fiber and more minerals. It is a wholesome option for health-conscious consumers and adds depth to salads and wholesome recipes
+          <p className={`${copyCls} js-txt-right w-80`}>
+            Grain Integrity: Extra-long, slender grains that remain separate and fluffy after cooking.
           </p>
 
-          <p className={`${copyCls} js-txt-left text-right`}>
-            A parboiled variety with a beautiful golden hue, Golden Sella preserves more nutrients and is loved for its firm, robust grains that stay separate after cooking. It’s especially favored by restaurants and caterers for its resilience and appearance.
+          <p className={`${copyCls} js-txt-left text-right w-80`}>
+            Natural Aroma: Retained through traditional aging and gentle processing.
           </p>
           <div className="flex justify-center">
-            <Image src="/assets/images/rice-2.jpg" alt="Grain 2" width={BOX} height={BOX}
+            <Image src="/assets/images/man.jpg" alt="Grain 2" width={BOX} height={BOX}
               className={`${imgCls} rounded-tl-3xl rounded-br-3xl`} />
           </div>
 
           <div className="flex justify-center">
-            <Image src="/assets/images/rice-3.jpg" alt="Grain 3" width={BOX} height={BOX}
+            <Image src="/assets/images/field-1.jpg" alt="Grain 3" width={BOX} height={BOX}
               className={`${imgCls} rounded-br-3xl rounded-tl-3xl`} />
           </div>
-          <p className={`${copyCls} js-txt-right`}>
-            Known for its authentic fragrance, traditional basmati has a rich, deep aroma and a classic soft texture that is prized in festive cooking and everyday meals. It features delicate, nutty flavor and grains that remain wonderfully separate after cooking.
+          <p className={`${copyCls} js-txt-right w-80`}>
+            Sustainable Cultivation: Environmentally responsible practices that support farmers and preserve soil quality.
           </p>
 
-          <p className={`${copyCls} js-txt-left text-right`}>
-            Among the longest grain varieties, 1121 Basmati stands out for its extended slender grains, superior fluffiness, and non-stickiness. It’s ideal for gourmet dishes, signature biryanis, and premium presentations, with a light, nutty aroma and consistent texture after cooking
+          <p className={`${copyCls} js-txt-left text-right w-80`}>
+            Global Compliance: Meets international standards of hygiene, packaging, and food safety (FSSAI, ISO, HACCP).
           </p>
           <div className="flex justify-center">
-            <Image src="/assets/images/rice-4.jpg" alt="Grain 4" width={BOX} height={BOX}
+            <Image src="/assets/images/rice-sacks.jpg" alt="Grain 4" width={BOX} height={BOX}
               className={`${imgCls} rounded-bl-3xl rounded-tr-3xl`} />
           </div>
         </div>
 
-        {/* DESKTOP (lg+): cross grid */}
+        {/* DESKTOP */}
         <div
           className="relative mx-auto mt-8 lg:mt-12 hidden lg:block"
           style={
@@ -242,7 +287,6 @@ export default function GrainSection() {
             } as React.CSSProperties
           }
         >
-          {/* Cross (animated) */}
           <div
             ref={crossRef}
             aria-hidden
@@ -257,43 +301,39 @@ export default function GrainSection() {
             <span className="js-cross-dot absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full bg-yellow-400 will-change-[transform,opacity]" />
           </div>
 
-          {/* Grid */}
-          <div
-            className="
-              relative z-10 grid grid-cols-[1fr_var(--box)_var(--box)_1fr]
-              grid-rows-2 gap-[var(--gap)] items-center
-            "
-          >
+          <div className="relative z-10 grid grid-cols-[1fr_var(--box)_var(--box)_1fr] grid-rows-2 gap-[var(--gap)] items-center">
             <p className={`${copyCls} js-txt-left text-right pr-6 col-start-1 row-start-1`}>
-              Retaining the bran and germ, brown basmati provides a chewier texture, nuttier flavor, and greater nutritional value including higher fiber and more minerals. It is a wholesome option for health-conscious consumers and adds depth to salads and wholesome recipes
+              Grain Integrity: Extra-long, slender grains that remain separate and fluffy after cooking.
             </p>
             <div className="col-start-2 row-start-1 flex justify-center">
-              <Image src="/assets/images/rice-1.jpg" alt="Grain 1" width={BOX} height={BOX}
+              <Image src="/assets/images/rice-bowl-1.jpg" alt="Grain 1" width={BOX} height={BOX}
                 className="js-img h-[var(--box)] w-[var(--box)] object-cover rounded-tr-3xl rounded-bl-3xl" />
             </div>
 
             <div className="col-start-3 row-start-1 flex justify-center">
-              <Image src="/assets/images/rice-2.jpg" alt="Grain 2" width={BOX} height={BOX}
+              <Image src="/assets/images/man.jpg" alt="Grain 2" width={BOX} height={BOX}
                 className="js-img h-[var(--box)] w-[var(--box)] object-cover rounded-tl-3xl rounded-br-3xl" />
             </div>
             <p className={`${copyCls} js-txt-right text-left pl-6 col-start-4 row-start-1`}>
-              A parboiled variety with a beautiful golden hue, Golden Sella preserves more nutrients and is loved for its firm, robust grains that stay separate after cooking. It’s especially favored by restaurants and caterers for its resilience and appearance.
+              Natural Aroma: Retained through traditional aging and gentle processing.
             </p>
 
+            <p className={`${copyCls} js-txt-left text-right pr-6 col-start-2 col-end-2 row-start-2`} />
             <p className={`${copyCls} js-txt-left text-right pr-6 col-start-1 row-start-2`}>
-              Known for its authentic fragrance, traditional basmati has a rich, deep aroma and a classic soft texture that is prized in festive cooking and everyday meals. It features delicate, nutty flavor and grains that remain wonderfully separate after cooking.
+              Sustainable Cultivation: Environmentally responsible practices that support farmers and preserve soil quality.
             </p>
+
             <div className="col-start-2 row-start-2 flex justify-center">
-              <Image src="/assets/images/rice-3.jpg" alt="Grain 3" width={BOX} height={BOX}
+              <Image src="/assets/images/field-1.jpg" alt="Grain 3" width={BOX} height={BOX}
                 className="js-img h-[var(--box)] w-[var(--box)] object-cover rounded-br-3xl rounded-tl-3xl" />
             </div>
 
             <div className="col-start-3 row-start-2 flex justify-center">
-              <Image src="/assets/images/rice-4.jpg" alt="Grain 4" width={BOX} height={BOX}
+              <Image src="/assets/images/rice-sacks.jpg" alt="Grain 4" width={BOX} height={BOX}
                 className="js-img h-[var(--box)] w-[var(--box)] object-cover rounded-bl-3xl rounded-tr-3xl" />
             </div>
             <p className={`${copyCls} js-txt-right text-left pl-6 col-start-4 row-start-2`}>
-              Among the longest grain varieties, 1121 Basmati stands out for its extended slender grains, superior fluffiness, and non-stickiness. It’s ideal for gourmet dishes, signature biryanis, and premium presentations, with a light, nutty aroma and consistent texture after cooking
+              Global Compliance: Meets international standards of hygiene, packaging, and food safety (FSSAI, ISO, HACCP).
             </p>
           </div>
         </div>

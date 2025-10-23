@@ -13,7 +13,7 @@ export default function HowAbuHindCultivates() {
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const subRef = useRef<HTMLHeadingElement | null>(null);
   const dividerRef = useRef<HTMLDivElement | null>(null);
-  const descRef = useRef<HTMLParagraphElement | null>(null);
+  const parasWrapRef = useRef<HTMLDivElement | null>(null); // ⬅️ NEW: paragraphs container
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -34,17 +34,15 @@ export default function HowAbuHindCultivates() {
 
     const setInitial = () => {
       gsap.set([titleRef.current, subRef.current], { y: 24, autoAlpha: 0 });
-      gsap.set(descRef.current, { x: -24, autoAlpha: 0 });
       gsap.set(dividerRef.current, { scaleX: 0, transformOrigin: "left center" });
       gsap.set(circles, { scale: 0.6, autoAlpha: 0 });
       gsap.set(train, { x: 0, y: 0, autoAlpha: 0 });
     };
 
     const clearAll = () => {
-      gsap.set(
-        [titleRef.current, subRef.current, descRef.current, dividerRef.current, ...circles],
-        { clearProps: "all" }
-      );
+      gsap.set([titleRef.current, subRef.current, dividerRef.current, ...circles], {
+        clearProps: "all",
+      });
       gsap.set(train, { clearProps: "all" });
     };
 
@@ -65,7 +63,6 @@ export default function HowAbuHindCultivates() {
       return { segments, trainW: tBox.width, trainH: tBox.height };
     };
 
-    // desktop-only flag
     const isDesktop = () =>
       typeof window !== "undefined" &&
       window.matchMedia("(min-width: 1024px)").matches;
@@ -87,17 +84,16 @@ export default function HowAbuHindCultivates() {
         },
       });
 
-      // Headings, divider, paragraph
+      // Headings + divider
       timeline
         .to(titleRef.current, { y: 0, autoAlpha: 1, duration: 0.6 }, 0.0)
-        .to(subRef.current,   { y: 0, autoAlpha: 1, duration: 0.8 }, 0.1)
-        .to(dividerRef.current, { scaleX: 1, duration: 0.5 }, 0.65)
-        .to(descRef.current,  { x: 0, autoAlpha: 1, duration: 0.8 }, 0.7);
+        .to(subRef.current, { y: 0, autoAlpha: 1, duration: 0.8 }, 0.1)
+        .to(dividerRef.current, { scaleX: 1, duration: 0.5 }, 0.65);
 
       const startAt = 0.55;
 
       if (!enableTrain) {
-        // 👉 Mobile & Tablet: reveal ALL circles with a staggered pop
+        // Mobile & Tablet: reveal ALL circles with a staggered pop
         if (circles.length) {
           timeline.fromTo(
             circles,
@@ -113,7 +109,7 @@ export default function HowAbuHindCultivates() {
           );
         }
       } else {
-        // 👉 Desktop: first circle pops, the rest pop as the train "arrives"
+        // Desktop: first circle pops, the rest pop as the train "arrives"
         if (circles[0]) {
           timeline.fromTo(
             circles[0],
@@ -178,6 +174,140 @@ export default function HowAbuHindCultivates() {
       return timeline;
     };
 
+    // ====== PARAGRAPH ANIMATION (unique effect) ======
+    const setupParagraphs = () => {
+      const wrap = parasWrapRef.current;
+      if (!wrap) return;
+
+      // Split words while preserving spaces and inner markup
+      const splitWords = (el: HTMLElement) => {
+        if ((el as any).__splitDone) {
+          return Array.from(el.querySelectorAll<HTMLElement>(":scope span.js-w"));
+        }
+        const txt = el.textContent ?? "";
+        const parts = txt.match(/\S+|\s+/g) ?? [];
+        el.textContent = "";
+        const frag = document.createDocumentFragment();
+        const words: HTMLElement[] = [];
+
+        parts.forEach((t) => {
+          if (/^\s+$/.test(t)) {
+            frag.appendChild(document.createTextNode(t));
+          } else {
+            const s = document.createElement("span");
+            s.textContent = t;
+            s.className = "js-w inline-block will-change-[transform,opacity,filter]";
+            frag.appendChild(s);
+            words.push(s);
+          }
+        });
+
+        // Add a glow sweep element
+        const glow = document.createElement("span");
+        glow.className = "js-glow pointer-events-none absolute inset-y-0 -left-1/2 w-[85%] rotate-1";
+        Object.assign(glow.style, {
+              background:
+                "linear-gradient(90deg, rgba(0,0,0,0), rgba(255,255,255,0.18), rgba(0,0,0,0))",
+              filter: "blur(6px)",
+              transform: "translateX(-120%)",
+              mixBlendMode: "screen",
+              opacity: "0",
+        } as CSSStyleDeclaration);
+        el.appendChild(frag);
+        el.appendChild(glow);
+
+        (el as any).__splitDone = true;
+        return words;
+      };
+
+      const paras = Array.from(wrap.querySelectorAll<HTMLElement>(".js-para"));
+
+      // init styles
+      paras.forEach((para, i) => {
+        para.style.position = "relative";
+        para.style.overflow = "hidden";
+
+        const words = splitWords(para);
+        const fromLeft = i % 2 === 0; // alternate direction
+
+        gsap.set(words, {
+          x: fromLeft ? -12 : 12,
+          y: 14,
+          z: -24,
+          rotationX: -35,
+          autoAlpha: 0,
+          filter: "blur(2px)",
+          transformPerspective: 900,
+          transformOrigin: fromLeft ? "left center" : "right center",
+          force3D: true,
+        });
+
+        const glow = para.querySelector<HTMLElement>(".js-glow");
+        if (glow) {
+          gsap.set(glow, { xPercent: -120, autoAlpha: 0 });
+        }
+      });
+
+      // build timeline just for paragraphs
+      const pTL = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+
+      paras.forEach((para, i) => {
+        const words = Array.from(para.querySelectorAll<HTMLElement>(".js-w"));
+        const glow = para.querySelector<HTMLElement>(".js-glow");
+        const base = 0.2 + i * 0.28;
+
+        pTL.to(
+          words,
+          {
+            x: 0,
+            y: 0,
+            z: 0,
+            rotationX: 0,
+            autoAlpha: 1,
+            filter: "blur(0px)",
+            duration: 0.6,
+            stagger: 0.012,
+          },
+          base
+        );
+
+        if (glow) {
+          pTL.fromTo(
+            glow,
+            { xPercent: -120, autoAlpha: 0 },
+            { xPercent: 160, autoAlpha: 1, duration: 0.8, ease: "power2.out" },
+            base + 0.08
+          ).to(glow, { autoAlpha: 0, duration: 0.2 }, ">-0.2");
+        }
+      });
+
+      // ScrollTrigger: only play downward; reset when leaving back
+      ScrollTrigger.create({
+        trigger: section!,
+        start: "top 78%",
+        onEnter: () => pTL.play(0),
+        onEnterBack: () => {}, // ignore upward re-entry
+        onLeaveBack: () => {
+          pTL.pause(0);
+          paras.forEach((para, i) => {
+            const fromLeft = i % 2 === 0;
+            const words = Array.from(para.querySelectorAll<HTMLElement>(".js-w"));
+            gsap.set(words, {
+              x: fromLeft ? -12 : 12,
+              y: 14,
+              z: -24,
+              rotationX: -35,
+              autoAlpha: 0,
+              filter: "blur(2px)",
+            });
+            const glow = para.querySelector<HTMLElement>(".js-glow");
+            if (glow) gsap.set(glow, { xPercent: -120, autoAlpha: 0 });
+          });
+        },
+        invalidateOnRefresh: true,
+      });
+    };
+
     if (reduced) {
       clearAll();
       return;
@@ -185,6 +315,7 @@ export default function HowAbuHindCultivates() {
 
     setInitial();
 
+    // Headings + circles/train timeline (downward only, resets on back)
     const masterST = ScrollTrigger.create({
       trigger: section,
       start: "top 72%",
@@ -194,7 +325,7 @@ export default function HowAbuHindCultivates() {
         setInitial();
         tl = buildTimeline(measure(), section, isDesktop());
       },
-      onEnterBack: () => {},
+      onEnterBack: () => {}, // ignore upward re-entry
       onLeaveBack: () => {
         tl?.scrollTrigger?.kill();
         tl?.kill();
@@ -203,6 +334,10 @@ export default function HowAbuHindCultivates() {
       invalidateOnRefresh: true,
     });
 
+    // Paragraph animation setup (separate TL)
+    setupParagraphs();
+
+    // Re-measure on refresh (layout changes)
     const onRefresh = () => {
       tl?.scrollTrigger?.kill();
       tl?.kill();
@@ -235,7 +370,7 @@ export default function HowAbuHindCultivates() {
           <Image src="/assets/images/bg-logo.png" alt="Left background" fill className="object-contain object-left" priority />
         </div>
       </div>
-      <div className="absolute pointer-events-none opacity-10 z-0 -right-12 top-122 h-56 w-56 sm:-right-16 sm:top-46 sm:h-100 sm:w-50 md:-right-20 md:top-50 md:h-52 md:w-52 lg:-right-30 lg:top-50 lg:bottom-0 lg:w-1/4 lg:h-auto">
+      <div className="absolute pointer-events-none opacity-10 z-0 -right-12 top-122 h-56 w-56 sm:-right-16 sm:top-46 sm:h-100 sm:w-50 md:-right-20 md:top-50 md:h-52 md:w-52 lg:-right-30 lg:top-80 lg:bottom-0 lg:w-1/4 lg:h-auto">
         <div className="relative w-full h-full">
           <Image src="/assets/images/bg-logo.png" alt="Right background" fill className="object-contain object-right" priority />
         </div>
@@ -244,8 +379,9 @@ export default function HowAbuHindCultivates() {
       {/* Main */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
         <h2 ref={titleRef} className="text-3xl md:text-4xl font-bold text-[#002060] mb-12 will-change-[transform,opacity]">
-          How Abu Hind Cultivates
+          From Indian Fields to The World
         </h2>
+        <div ref={dividerRef} className="w-40 h-[3px] bg-[#F9B233] mx-auto mb-20 -mt-5 rounded-full origin-left scale-x-0 will-change-transform" />
 
         {/* Steps Row */}
         <div ref={rowRef} className="relative flex flex-wrap justify-center items-center gap-6 md:gap-10 mb-16">
@@ -278,16 +414,28 @@ export default function HowAbuHindCultivates() {
           ))}
         </div>
 
-        {/* Subheading + Yellow Line + Paragraph */}
-        <h3 ref={subRef} className="text-2xl font-semibold text-blue-900 mb-3 will-change-[transform,opacity]">
-          Seed Selection and Sowing
-        </h3>
-        <div ref={dividerRef} className="w-20 h-[3px] bg-[#F9B233] mx-auto mb-5 rounded-full origin-left scale-x-0 will-change-transform" />
-        <p ref={descRef} className="text-blue-900 font-semibold max-w-3xl mx-auto leading-relaxed text-sm sm:text-base will-change-[transform,opacity]">
-          Only high-caliber seeds are selected for optimal harvest. These pest-resistant
-          seeds are either sown straight into the soil or transplanted from nursery beds
-          after initial growth.
-        </p>
+        {/* Subheading (optional) */}
+        {/* <h3 ref={subRef} className="text-xl font-semibold text-[#002060] mb-4 will-change-[transform,opacity]">
+          How Abu Hind Cultivates Quality
+        </h3> */}
+
+        {/* Paragraphs (unique animation) */}
+        <div
+          ref={parasWrapRef}
+          className="max-w-3xl mx-auto text-blue-900 font-semibold leading-relaxed text-sm sm:text-base space-y-4"
+        >
+          <p className="js-para relative">
+            Abu Hind’s journey begins in India’s basmati heartland. Only selected, high-grade seeds are cultivated in
+            nutrient-rich soil using sustainable, time-tested techniques. Every harvest is naturally aged to develop aroma
+            and strength before being carefully processed in state-of-the-art facilities. From these fields, Abu Hind
+            premium basmati travels across borders, maintaining full traceability, purity, and consistency from farm to
+            export.
+          </p>
+          <p className="js-para relative">
+            Our promise is simple: To deliver authentic Indian basmati that exceeds global quality benchmarks and delights
+            every market it reaches.
+          </p>
+        </div>
       </div>
     </section>
   );

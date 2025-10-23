@@ -90,7 +90,7 @@ export default function Navbar() {
           </div>
 
           {/* Center: nav links (desktop) */}
-          <nav aria-label="Primary" className="hidden lg:flex items-center justify-center">
+          <nav aria-label="Primary" className="hidden lg:flex items-center justify-center font-alro font-extrabold">
             <ul className="flex items-center gap-8">
               {NAV_LINKS.map(({ id, label }) => (
                 <li key={id}>

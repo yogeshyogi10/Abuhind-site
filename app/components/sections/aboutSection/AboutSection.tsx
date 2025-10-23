@@ -13,11 +13,11 @@ type Feature = {
   imgAlt: string;
   offset?: boolean;
 };
-
-const features: Feature[] = [
-  { no: '01', title: 'Rich in Quality', blurb: 'Our rice meets the highest standards, cultivated and processed with care to ensure consistent excellence', img: '/assets/images/crop.webp', imgAlt: 'Golden rice in the field' },
-  { no: '02', title: 'Rich in Aroma', blurb: 'Swift processing preserves the freshness and nutrients from field to table.', img: '/assets/images/sack.jpg', imgAlt: 'Grains in a sack', offset: true },
-  { no: '03', title: 'Freshly Harvested', blurb: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.', img: '/assets/images/farmer.webp', imgAlt: 'Farmer in the field' },
+                                   
+const features: Feature[] = [    
+  { no: '01', title: 'Freshly Harvested', blurb: 'Swift processing preserves the freshness and nutrients from field to table.', img: '/assets/images/farmer.webp', imgAlt: 'Farmer in the field'  },
+  { no: '02', title: 'Rich in Quality', blurb: 'Our rice meets the highest standards, cultivated and processed with care to ensure consistent excellence',  img: '/assets/images/crop.webp', imgAlt: 'Golden rice in the field', offset: true },
+  { no: '03', title: 'Rich in Aroma', blurb: 'Natural fragrance enhances every meal with the royal aroma of Abu Hind rice.', img: '/assets/images/sack.jpg', imgAlt: 'Grains in a sack' },
 ];
 
 function FeatureItem({ no, title, blurb, img, imgAlt, offset }: Feature) {
@@ -42,7 +42,7 @@ function FeatureItem({ no, title, blurb, img, imgAlt, offset }: Feature) {
           <h3 className="js-card-title text-xl font-semibold text-[#011D6E] font-manrope will-change-[transform,opacity]">
             {title}
           </h3>
-          <p className="js-card-blurb mt-2 text-sm leading-6 text-[#011D6E] font-manrope will-change-[transform,opacity]">
+          <p className="js-card-blurb mt-2 text-sm leading-6 text-[#011D6E] font-poppins font-semibold will-change-[transform,opacity]">
             {blurb}
           </p>
         </div>
@@ -229,16 +229,16 @@ export default function AboutPage() {
           <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
             <h1
               ref={headingRef}
-              className="text-2xl sm:text-3xl font-extrabold tracking-tight font-manrope will-change-[transform,opacity]"
+              className="text-4xl sm:text-3xl font-extrabold tracking-tight lg:text-4xl will-change-[transform,opacity]"
             >
-              <span className="text-white font-semibold">About</span>{' '}
-              <span className="text-[#011D6E] font-semibold">Abu Hind</span>
+              <span className="text-white font-bold">About</span>{' '}
+              <span className="text-[#011D6E] font-bold">Abu Hind</span>
             </h1>
           </div>
         </div>
 
         {/* Intro paragraph */}
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 font-manrope">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 font-semibold">
           <p
             ref={introRef}
             className="text-sm sm:text-base leading-7 max-w-4xl text-[#011D6E] will-change-[transform,opacity]"

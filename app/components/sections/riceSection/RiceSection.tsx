@@ -13,31 +13,31 @@ type Card = {
 
 const leftCards: Card[] = [
   {
-    iconSrc: '/assets/icons/rice-logo.png',
+    iconSrc: '/assets/icons/wheat.png',
     iconAlt: 'Leaf',
     text:
-      'Each grain releases a rich, natural fragrance that elevates every meal and signals premium quality from the moment it’s cooked.',
+      'Authentic Indian Origin – 100% sourced and processed in India’s traditional basmati regions for true geographical authenticity.',
   },
   {
-    iconSrc: '/assets/icons/wheat-logo.png',
+    iconSrc: '/assets/icons/hands.png',
     iconAlt: 'Waves',
     text:
-      'Abu Hind rice boasts slender, extra-long grains that remain separate and fluffy, ideal for biryanis, pilafs, and festive dishes.',
+      'Globally Trusted – Preferred by importers, retailers, and chefs across GCC, Africa, Europe, and Asia for consistent quality and royal presentation.',
   },
 ];
 
 const rightCards: Card[] = [
   {
-    iconSrc: '/assets/icons/rice-bowl-logo.png',
+    iconSrc: '/assets/icons/rice-bowl.png',
     iconAlt: 'List',
     text:
-      'Abu Hind rice is naturally free from gluten, making it suitable for those with dietary restrictions',
+      'Aromatic Excellence – Naturally aged, releasing a delicate, nutty aroma that defines premium Indian cuisine.',
   },
   {
-    iconSrc: '/assets/icons/cooker-logo.png',
+    iconSrc: '/assets/icons/sack.png',
     iconAlt: 'Stand',
     text:
-      ' Carefully processed and matured for consistent results, our rice cooks evenly and resists sticking, making preparation simple and reliable',
+      'Pure, Nutritious & Export-Grade – Carefully sorted, graded, and packaged to ensure freshness; low in fat, gluten-free, and naturally rich in carbs and minerals',
   },
 ];
 
@@ -47,11 +47,56 @@ function InfoCard({
   text,
   className = '',
 }: Card & { className?: string }) {
+  // Bold "Grade" anywhere (case-insensitive)
+  const wrapGrade = (s: string) => {
+    const parts = s.split(/(Grade)\b/gi);
+    return parts.map((part, i) =>
+      i % 2 === 1 ? (
+        <span key={`g-${i}`} className="font-bold">
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
+  };
+
+  // If "ifan" appears, bold text before it; else bold before first dash
+  const renderText = (t: string) => {
+    const lower = t.toLowerCase();
+    const ifanIndex = lower.indexOf('ifan');
+
+    if (ifanIndex > 0) {
+      const before = t.slice(0, ifanIndex);
+      const after = t.slice(ifanIndex);
+      return (
+        <>
+          <span className="font-bold">{wrapGrade(before)}</span>
+          {wrapGrade(after)}
+        </>
+      );
+    }
+
+    const m = t.match(/^(.*?)(\s*[—–-]\s*)(.*)$/);
+    if (m) {
+      const [, prefix, sep, suffix] = m;
+      return (
+        <>
+          <span className="font-bold">{wrapGrade(prefix)}</span>
+          {sep}
+          {wrapGrade(suffix)}
+        </>
+      );
+    }
+
+    return wrapGrade(t);
+  };
+
   return (
     <div
       className={`
         group relative overflow-hidden js-card ${className}
-        w-80 h-50 rounded-xl bg-white p-6 shadow-xl ring-1 ring-black/5
+        w-80 h-55 rounded-xl bg-white p-6 shadow-xl ring-1 ring-black/5
         transition-colors duration-300 hover:bg-yellow-400
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300
         cursor-pointer select-none
@@ -88,11 +133,17 @@ function InfoCard({
           transition-colors group-hover:bg-yellow-300 group-hover:ring-yellow-500
         "
       >
-        <Image src={iconSrc} alt={iconAlt} width={32} height={32} className="object-contain" />
+        <Image
+          src={iconSrc}
+          alt={iconAlt}
+          width={45}
+          height={45}
+          className="object-contain"
+        />
       </div>
 
       <p className="z-10 relative text-center text-sm leading-6 text-[#011D6E] transition-colors group-hover:text-[#072c6a]">
-        {text}
+        {renderText(text)}
       </p>
     </div>
   );
@@ -120,22 +171,17 @@ export default function AboutRice() {
         CSS.supports('clipPath', 'inset(0% 0% 0% 0%)'));
 
     const ctx = gsap.context((self) => {
-      // ===== Gold shimmer (all breakpoints) =====
+      // ===== Gold shimmer on cards =====
       const cards = gsap.utils.toArray<HTMLElement>('.js-card');
       const cleanupFns: Array<() => void> = [];
 
       cards.forEach((card) => {
         const shine = card.querySelector<HTMLElement>('.js-shine');
-        const glow  = card.querySelector<HTMLElement>('.js-glow');
+        const glow = card.querySelector<HTMLElement>('.js-glow');
         if (!shine) return;
 
-        // Loop sweep while in view (from far left to far right)
         const loop = gsap.timeline({ paused: true, repeat: -1, repeatDelay: 2.2 });
-        loop.fromTo(
-          shine,
-          { xPercent: -160 },
-          { xPercent: 260, duration: 1.2, ease: 'power2.out' } // fully crosses the card
-        );
+        loop.fromTo(shine, { xPercent: -160 }, { xPercent: 260, duration: 1.2, ease: 'power2.out' });
 
         ScrollTrigger.create({
           trigger: card,
@@ -147,7 +193,6 @@ export default function AboutRice() {
           onLeaveBack: () => loop.pause(0),
         });
 
-        // Kick on hover/tap + flash glow
         const kick = () => {
           loop.restart(true);
           if (glow) {
@@ -174,7 +219,6 @@ export default function AboutRice() {
           card.addEventListener('pointerdown', onPointerDown);
           cleanupFns.push(() => card.removeEventListener('pointerdown', onPointerDown));
         } else {
-          // Fallback for older iOS Safari (no PointerEvent)
           const onTouchStart = () => kick();
           const onClick = () => kick();
           card.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -187,7 +231,7 @@ export default function AboutRice() {
       // ===== Entrance animations =====
       const leftEls = gsap.utils.toArray<HTMLElement>('.js-left');
       const rightEls = gsap.utils.toArray<HTMLElement>('.js-right');
-      const riceEls = gsap.utils.toArray<HTMLElement>('.js-rice');
+      const riceEls = gsap.utils.toArray<HTMLElement>('.js-rice'); // rice bag wrappers
 
       const init = () => {
         gsap.set(heading, { autoAlpha: 0, y: 10 });
@@ -201,7 +245,13 @@ export default function AboutRice() {
           gsap.set(rightEls, { x: 24, autoAlpha: 0 });
         }
 
-        gsap.set(riceEls, { autoAlpha: 0, y: 6, scale: 1 });
+        // IMPORTANT: start visible so mobile/tablet see the image
+        gsap.set(riceEls, {
+          autoAlpha: 1,
+          y: 6,
+          scale: 1,
+          willChange: 'transform',
+        });
       };
 
       init();
@@ -224,13 +274,13 @@ export default function AboutRice() {
           .to(rightEls, { x: 0, autoAlpha: 1, duration: 0.7, stagger: 0.15 }, 0.2);
       }
 
-      tl.to(riceEls, { autoAlpha: 1, y: 0, duration: 0.6 }, 0.25);
+      // Only move the rice bags up slightly (no fade-in, they’re already visible)
+      tl.to(riceEls, { y: 0, duration: 0.6 }, 0.25);
 
       ScrollTrigger.create({
         trigger: section!,
-        start: 'top 80%',
+        start: 'top 85%',
         onEnter: () => tl.play(0),
-        onEnterBack: () => {},
         onLeaveBack: () => {
           tl.pause(0);
           init();
@@ -238,8 +288,38 @@ export default function AboutRice() {
         invalidateOnRefresh: true,
       });
 
-      // Clean up listeners
-      self.add(() => cleanupFns.forEach((fn) => fn()));
+      // ===== Floating rice bag (in view only) =====
+      const floatTweens: gsap.core.Tween[] = [];
+      riceEls.forEach((el, i) => {
+        const tween = gsap.to(el, {
+          y: i % 2 === 0 ? '+=10' : '+=14',
+          rotation: i % 2 === 0 ? -0.6 : 0.6,
+          duration: 4 + (i % 3), // 4..6s
+          ease: 'sine.inOut',
+          yoyo: true,
+          repeat: -1,
+          paused: true,
+          force3D: true,
+        });
+
+        floatTweens.push(tween);
+
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 95%',
+          end: 'bottom 5%',
+          onEnter: () => tween.play(),
+          onEnterBack: () => tween.play(),
+          onLeave: () => tween.pause(0),
+          onLeaveBack: () => tween.pause(0),
+        });
+      });
+
+      // Cleanup
+      self.add(() => {
+        cleanupFns.forEach((fn) => fn());
+        floatTweens.forEach((t) => t.kill());
+      });
     }, section);
 
     return () => ctx.revert();
@@ -260,20 +340,21 @@ export default function AboutRice() {
 
         {/* SMALL */}
         <div className="mt-10 grid grid-cols-1 gap-8 lg:hidden md:hidden">
-          <div className="space-y-6 order-2 flex flex-col items-center">
+          <div className="space-y-6 order-2 flex flex-col items-center font-semibold">
             {leftCards.map((c, i) => (
-              <InfoCard key={`s-l-${i}`} {...c} className="js-left" />
+              <InfoCard key={`s-l-${i}`} {...c} className="js-left font-semibold" />
             ))}
           </div>
 
           <div className="order-1 flex items-center justify-center">
-            <div className="relative js-rice">
+            <div className="relative js-rice will-change-transform [transform:translateZ(0)]">
               <div className="pointer-events-none absolute -inset-10 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.55),transparent_60%)]" />
               <Image
                 src="/assets/images/rice-bag.webp"
                 alt="Abu Hind rice pack"
                 width={900}
                 height={1200}
+                sizes="(max-width: 639px) 14rem, 100vw"
                 className="relative z-10 h-100 w-56 sm:w-64 lg:w-100 object-cover drop-shadow-2xl"
                 priority
               />
@@ -288,15 +369,16 @@ export default function AboutRice() {
         </div>
 
         {/* MEDIUM */}
-        <div className="mt-10 hidden md:grid lg:hidden grid-cols-2 gap-8 place-items-center">
-          <div className="col-span-2 flex items-center justify-center">
-            <div className="relative js-rice">
+        <div className="mt-10 hidden md:grid lg:hidden grid-cols-2 gap-8 place-items-center font-semibold">
+          <div className="col-span-2 flex items-center justify-center font-semibold">
+            <div className="relative js-rice will-change-transform [transform:translateZ(0)]">
               <div className="pointer-events-none absolute -inset-10 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.55),transparent_60%)]" />
               <Image
                 src="/assets/images/rice-bag.webp"
                 alt="Abu Hind rice pack"
                 width={900}
                 height={1200}
+                sizes="(min-width: 640px) and (max-width: 1023px) 16rem, 100vw"
                 className="relative z-10 h-100 w-64 object-cover drop-shadow-2xl"
                 priority
               />
@@ -304,26 +386,31 @@ export default function AboutRice() {
           </div>
 
           {allCards.map((c, i) => (
-            <InfoCard key={`m-${i}`} {...c} className={i < leftCards.length ? 'js-left' : 'js-right'} />
+            <InfoCard
+              key={`m-${i}`}
+              {...c}
+              className={i < leftCards.length ? 'js-left' : 'js-right'}
+            />
           ))}
         </div>
 
         {/* LARGE */}
-        <div className="mt-10 hidden lg:grid grid-cols-3 gap-8 items-start">
-          <div className="space-y-6 order-2 lg:order-1 flex flex-col items-center">
+        <div className="mt-10 hidden lg:grid grid-cols-3 gap-8 items-start font-semibold">
+          <div className="space-y-6 order-2 lg:order-1 flex flex-col items-center font-semibold">
             {leftCards.map((c, i) => (
               <InfoCard key={`l-${i}`} {...c} className="js-left" />
             ))}
           </div>
 
           <div className="order-1 lg:order-2 flex items-center justify-center">
-            <div className="relative js-rice">
+            <div className="relative js-rice will-change-transform [transform:translateZ(0)]">
               <div className="pointer-events-none absolute -inset-10 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.55),transparent_60%)]" />
               <Image
                 src="/assets/images/rice-bag.webp"
                 alt="Abu Hind rice pack"
                 width={900}
                 height={1200}
+                sizes="(min-width: 1024px) 20rem, 100vw"
                 className="relative z-10 h-100 w-56 sm:w-64 lg:w-100 object-cover drop-shadow-2xl"
                 priority
               />

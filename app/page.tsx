@@ -16,12 +16,12 @@ export default function Home() {
    <main>
     <Navbar />
     <HeroSection />
-    <HowAbuHindCultivates />
+    <HeroVignette />
     <AboutPage />
        <WhySection
       />
+      <HowAbuHindCultivates />
       <AboutRice />
-      <HeroVignette />
       <StorySection 
         
       />

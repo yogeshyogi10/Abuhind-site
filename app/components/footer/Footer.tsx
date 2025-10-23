@@ -43,14 +43,14 @@ export default function Footer() {
         </div>
 
         {/* Description */}
-        <p className="mx-auto mt-4 max-w-3xl text-xs sm:text-sm leading-6">
+        <p className="mx-auto mt-4 max-w-3xl text-xs sm:text-sm leading-6 text-blue-900 lg:font-semibold">
           Abu Hind — Bringing the legacy of royal taste to your table. Pure, aromatic, and perfectly
           crafted grains for every meal.
         </p>
 
         {/* Main nav (anchors) */}
         <nav aria-label="Footer" className="mt-6">
-          <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm font-medium">
+          <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm font-semibold text-blue-900">
             <li>
               <Link
                 href="#home"
@@ -92,7 +92,7 @@ export default function Footer() {
 
         {/* Policies (use real routes or keep as-is) */}
         <div className="mt-5">
-          <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs">
+          <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs font-semibold text-blue-900">
             <li><Link href="/privacy" className="hover:underline">Privacy Policy</Link></li>
             <li><Link href="/terms" className="hover:underline">Terms of Service</Link></li>
             <li><Link href="/cookies" className="hover:underline">Cookies Policy</Link></li>
@@ -100,7 +100,7 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <p className="mt-6 text-xs">
+        <p className="mt-6 text-xs font-semibold text-blue-900">
           &copy; {new Date().getFullYear()} Abuhind. All rights reserved.
         </p>
       </div>
